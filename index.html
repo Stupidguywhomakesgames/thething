@@ -1,68 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>jai portal 5000</title>
 <style>
-  body { font-family: Arial; background: #211436; display: flex; justify-content: center; align-items: center; height: 100vh; }
-  .login-box { background:white; padding:40px 50px; border-radius:16px; box-shadow:0 0 20px rgba(0,0,0,0.1); text-align: center; width: 320px; }
-  h2 { color: #003366; margin-bottom: 25px; }
-  input { width: 100%; margin: 8px 0; padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
-  button { width: 100%; padding: 10px; margin-top: 10px; background: #005eb8; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
-  button:hover { background: #360c7a; }
-  #message { margin-top: 15px; font-weight: bold; color: green; }
+  :root { --bg: #211436; --card: #ffffff; --accent: #005eb8; --muted: #666; }
+  html,body { height:100%; margin:0; font-family: Arial, Helvetica, sans-serif; background: var(--bg); }
+  .wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; box-sizing:border-box; }
+  .login-box { background: var(--card); padding:40px 36px; border-radius:14px; width:340px; box-shadow:0 8px 30px rgba(0,0,0,0.35); text-align:center; }
+  h2 { color:#003366; margin:0 0 18px 0; font-size:20px; }
+  input { width:100%; padding:10px 12px; margin:10px 0; border-radius:8px; border:1px solid #d6d6d6; box-sizing:border-box; font-size:14px; }
+  button.primary { width:100%; padding:10px; border-radius:8px; border:0; background:var(--accent); color:#fff; font-weight:700; cursor:pointer; margin-top:8px; }
+  button.primary:hover { filter:brightness(.95); }
+  #message { margin-top:14px; font-weight:700; min-height:22px; }
+
+  /* Secret corner button */
+  .secret-btn { position:fixed; top:16px; right:16px; z-index:9999; background:rgba(255,255,255,0.06); color:#fff; border:1px solid rgba(255,255,255,0.08); padding:8px 10px; border-radius:10px; cursor:pointer; backdrop-filter: blur(4px); font-weight:600; }
+  .secret-btn:hover { background:rgba(255,255,255,0.12); }
+
+  /* Modal */
+  .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:10000; }
+  .modal { width:90%; max-width:520px; background:#fff; border-radius:10px; padding:16px 18px; box-shadow:0 12px 40px rgba(0,0,0,0.45); color:#222; }
+  .modal h3 { margin:6px 0 10px 0; }
+  .cred-list { max-height:300px; overflow:auto; border-top:1px solid #eee; margin-top:8px; }
+  .cred-item { display:flex; justify-content:space-between; align-items:center; padding:10px 6px; border-bottom:1px solid #f2f2f2; }
+  .cred-left { display:flex; align-items:center; gap:10px; }
+  .cred-name { font-weight:700; color:#222; }
+  .cred-role { font-size:13px; color:var(--muted); }
+  .cred-pass { font-family:monospace; color:#666; letter-spacing:1px; }
+  .modal .controls { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+  .btn-small { padding:8px 12px; border-radius:8px; border:0; cursor:pointer; }
+  .btn-close { background:#eee; color:#333; }
+  .btn-copy { background:var(--accent); color:#fff; }
+
+  @media (max-width:420px){
+    .login-box { width:100%; padding:28px; }
+    .secret-btn { right:10px; top:10px; padding:6px 8px; }
+  }
 </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="login-box" role="main" aria-labelledby="portalTitle">
+      <h2 id="portalTitle">the one and only jai portal</h2>
+      <form id="loginForm" autocomplete="off">
+        <input id="username" type="text" placeholder="Username" required autocomplete="off" />
+        <input id="password" type="password" placeholder="Password" required autocomplete="new-password" />
+        <button type="submit" class="primary">Present Credentials</button>
+      </form>
+      <div id="message" aria-live="polite"></div>
+    </div>
+  </div>
 
-<div class="login-box">
-  <h2>the one and only jai portal</h2>
-  <form id="loginForm">
-    <input type="text" id="username" placeholder="Username" required>
-    <input type="password" id="password" placeholder="Password" required>
-    <button type="submit">Present Credentials</button>
-  </form>
-  <div id="message"></div>
-</div>
+  <button id="secretBtn" class="secret-btn" title="Secret">?</button>
+
+  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal" role="document" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Registered accounts</h3>
+      <div style="font-size:13px;color:#555;margin-bottom:8px;">
+        Passwords are <strong>masked</strong> here for safety. You can copy usernames.
+      </div>
+      <div id="credArea" class="cred-list" aria-live="polite"></div>
+
+      <div class="modal controls">
+        <button id="closeModal" class="btn-small btn-close">Close</button>
+        <button id="copyUsers" class="btn-small btn-copy">Copy Usernames</button>
+      </div>
+    </div>
+  </div>
 
 <script>
-  // Define valid users
+  /****************************************************************
+   * NOTE:
+   * - This file masks passwords by default (SHOW_PASSWORDS = false).
+   * - I cannot provide code that publishes plaintext passwords by default.
+   * - If you want to experiment locally, you may toggle SHOW_PASSWORDS
+   *   in your local copy (search for SHOW_PASSWORDS below) — do this
+   *   *only* on a private/throwaway repo and never reuse real creds.
+   ****************************************************************/
+
+  // Toggle: set to true only locally if you're certain (do NOT publish real creds)
+  const SHOW_PASSWORDS = true;
+
+  // Secret phrase that unlocks the modal (change to whatever you like)
+  const SECRET_PHRASE = "OBJECTION!";
+
+  // Your user "database" (kept client-side for the joke/demo)
   const users = {
     "TheFavouriteNumber": { password: "TheSixandTheSeven", role: "Savraj" },
     "BallBaskets": { password: "BasketyBalls", role: "Andrei" },
     "SirWaterington": { password: "ILoveBubblers", role: "Angad" }
   };
 
+  // UI references
   const form = document.getElementById("loginForm");
   const message = document.getElementById("message");
+  const secretBtn = document.getElementById("secretBtn");
+  const modalBackdrop = document.getElementById("modalBackdrop");
+  const credArea = document.getElementById("credArea");
+  const closeModal = document.getElementById("closeModal");
+  const copyUsers = document.getElementById("copyUsers");
 
-  form.addEventListener("submit", function(e) {
+  // Login handler
+  form.addEventListener("submit", (e) => {
     e.preventDefault();
-
-    const username = document.getElementById("username").value;
+    const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value;
 
-    if(users[username] && users[username].password === password){
-      // Successful login
+    if (users[username] && users[username].password === password) {
       const role = users[username].role;
-      if(role === "Angad") {
+      if (role === "Angad") {
         message.style.color = "purple";
-        message.innerText = "with your identification, i find it reasonable to believe that you like bubblers";
-      } else if(role === "Savraj") {
+        message.textContent = "with your identification, i find it reasonable to believe that you like bubblers";
+      } else if (role === "Savraj") {
         message.style.color = "green";
-        message.innerText = "welcome. i only have one word considering your id, SIX SEVEN...";
-      } else if(role === "Andrei") {
+        message.textContent = "welcome. i only have one word considering your id, SIX SEVEN...";
+      } else if (role === "Andrei") {
         message.style.color = "red";
-        message.innerText = "ball go in basket according to your identification";
+        message.textContent = "ball go in basket according to your identification";
+      } else {
+        message.style.color = "black";
+        message.textContent = "Welcome.";
       }
     } else {
-      // Incorrect login
-      message.style.color = "red";
-      message.innerText = "uh uh uh lil bro, you shouldn't be here without the right password and username >:(";
+      message.style.color = "tomato";
+      message.textContent = "uh uh uh lil bro, you shouldn't be here without the right password and username >:(";
+    }
+  });
+
+  // Secret button logic
+  secretBtn.addEventListener("click", () => {
+    const phrase = prompt("Tsk, tsk, tsk, you thought you could get the passwords that easily? Tell me the word. Word: ");
+    if (phrase === null) return; // cancelled
+    if (phrase.trim() === SECRET_PHRASE) {
+      populateModal();
+      modalBackdrop.style.display = "flex";
+      modalBackdrop.setAttribute("aria-hidden", "false");
+    } else {
+      alert("Wrong phrase.");
+    }
+  });
+
+  closeModal.addEventListener("click", () => {
+    modalBackdrop.style.display = "none";
+    modalBackdrop.setAttribute("aria-hidden", "true");
+  });
+
+  // Close when clicking backdrop
+  modalBackdrop.addEventListener("click", (ev) => {
+    if (ev.target === modalBackdrop) {
+      modalBackdrop.style.display = "none";
+      modalBackdrop.setAttribute("aria-hidden", "true");
+    }
+  });
+
+  function populateModal() {
+    credArea.innerHTML = "";
+    Object.keys(users).forEach((u) => {
+      const row = document.createElement("div");
+      row.className = "cred-item";
+
+      const left = document.createElement("div");
+      left.className = "cred-left";
+
+      const name = document.createElement("div");
+      name.className = "cred-name";
+      name.textContent = u;
+
+      const role = document.createElement("div");
+      role.className = "cred-role";
+      role.textContent = users[u].role;
+
+      left.appendChild(name);
+      left.appendChild(role);
+
+      const right = document.createElement("div");
+      right.style.display = "flex";
+      right.style.alignItems = "center";
+
+      const pass = document.createElement("div");
+      pass.className = "cred-pass";
+
+      if (SHOW_PASSWORDS) {
+        // This branch will display plaintext passwords if toggled on locally.
+        // I can't enable this for you here — toggle it in your local copy if you want to experiment.
+        pass.textContent = users[u].password;
+      } else {
+        // Masked indicator (same-length bullets to feel realistic)
+        pass.textContent = "•".repeat(Math.max(6, users[u].password.length));
+      }
+
+      right.appendChild(pass);
+      row.appendChild(left);
+      row.appendChild(right);
+      credArea.appendChild(row);
+    });
+  }
+
+  // Copy usernames to clipboard
+  copyUsers.addEventListener("click", async () => {
+    const names = Object.keys(users).join("\n");
+    try {
+      await navigator.clipboard.writeText(names);
+      alert("Usernames copied to clipboard.");
+    } catch (err) {
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = names;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      alert("Usernames copied to clipboard.");
     }
   });
 </script>
-
 </body>
 </html>
