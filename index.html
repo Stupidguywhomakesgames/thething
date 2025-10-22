@@ -45,27 +45,26 @@
     <div class="login-box" role="main" aria-labelledby="portalTitle">
       <h2 id="portalTitle">the one and only jai portal</h2>
       <form id="loginForm" autocomplete="off">
-        <input id="username" type="text" placeholder="Username" required autocomplete="off" />
-        <input id="password" type="password" placeholder="Password" required autocomplete="new-password" />
+        <input id="username" type="text" placeholder="username" required autocomplete="off" />
+        <input id="password" type="password" placeholder="password" required autocomplete="new-password" />
         <button type="submit" class="primary">Present Credentials</button>
       </form>
       <div id="message" aria-live="polite"></div>
     </div>
   </div>
 
-  <button id="secretBtn" class="secret-btn" title="Secret">?</button>
+  <button id="secretBtn" class="secret-btn" title="WHAAAAAAT!? WHAT IS THIS...">?</button>
 
   <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal" role="document" aria-labelledby="modalTitle">
-      <h3 id="modalTitle">Registered accounts</h3>
+      <h3 id="modalTitle">the database</h3>
       <div style="font-size:13px;color:#555;margin-bottom:8px;">
-        Passwords are <strong>masked</strong> here for safety. You can copy usernames.
+        how did you find this? oh well, just keep it i guess. you can see the names for the people i gave these credentials too
       </div>
       <div id="credArea" class="cred-list" aria-live="polite"></div>
 
       <div class="modal controls">
-        <button id="closeModal" class="btn-small btn-close">Close</button>
-        <button id="copyUsers" class="btn-small btn-copy">Copy Usernames</button>
+        <button id="closeModal" class="btn-small btn-close">close</button>
       </div>
     </div>
   </div>
@@ -121,7 +120,7 @@
         message.textContent = "ball go in basket according to your identification";
       } else {
         message.style.color = "black";
-        message.textContent = "Welcome.";
+        message.textContent = "ngl this is the default if i was too lazy to give you a message";
       }
     } else {
       message.style.color = "tomato";
@@ -131,7 +130,7 @@
 
   // Secret button logic
   secretBtn.addEventListener("click", () => {
-    const phrase = prompt("Tsk, tsk, tsk, you thought you could get the passwords that easily? Tell me the word. Word: ");
+    const phrase = prompt("Tsk, tsk, tsk, you thought you could get the passwords that easily? Tell me none other then MY FAVOURITE WORD.");
     if (phrase === null) return; // cancelled
     if (phrase.trim() === SECRET_PHRASE) {
       populateModal();
