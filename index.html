@@ -59,7 +59,7 @@
     <div class="modal" role="document" aria-labelledby="modalTitle">
       <h3 id="modalTitle">the database</h3>
       <div style="font-size:13px;color:#555;margin-bottom:8px;">
-        how did you find this? oh well, just keep it i guess. you can see the names for the people i gave these credentials too
+        how did you find this? oh well, just keep it i guess. you can see the names for the people i gave these credentials to.
       </div>
       <div id="credArea" class="cred-list" aria-live="polite"></div>
 
@@ -89,7 +89,9 @@
   const users = {
     "TheFavouriteNumber": { password: "TheSixandTheSeven", role: "Savraj" },
     "BallBaskets": { password: "BasketyBalls", role: "Andrei" },
-    "SirWaterington": { password: "ILoveBubblers", role: "Angad" }
+    "SirWaterington": { password: "ILoveBubblers", role: "Angad" },
+    "Skibster5151": { password: "Eureka!", role: "Jaivir" },
+    "LogarithmicAlgorithims2": { password: "TheTuffsterMathMan", role: "Hridhaan" }
   };
 
   // UI references
@@ -118,9 +120,12 @@
       } else if (role === "Andrei") {
         message.style.color = "red";
         message.textContent = "ball go in basket according to your identification";
+      } else if (role === "Jaivir") {
+        message.style.color = "orange"
+        message.textContent = "Objection, your honor. This is clearly just some baseless conjecture that is nothing but a waste of time. I request that this cross-examination may be dismissed.
       } else {
         message.style.color = "black";
-        message.textContent = "ngl this is the default if i was too lazy to give you a message";
+        message.textContent = "ngl this is the default if i was too lazy to give you a message. don't confuse this with you NOT having a username and password.";
       }
     } else {
       message.style.color = "tomato";
@@ -137,7 +142,7 @@
       modalBackdrop.style.display = "flex";
       modalBackdrop.setAttribute("aria-hidden", "false");
     } else {
-      alert("Wrong phrase.");
+      alert("Tsk, tsk, tsk. The audacity.");
     }
   });
 
